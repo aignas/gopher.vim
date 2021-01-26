@@ -14,7 +14,8 @@ Some of the biggest changes/improvements from vim-go (not a comprehensive list):
 
 - :`GoInstall`, `:GoTest`, etc. are now implemented as a compiler. This is
   essentially the same in most respects, except that it doesn't re-implement
-  quite a bit of native Vim features.
+  quite a bit of native Vim features. It's also a bit smarter about which
+  package to build and passing build tags.
 
 - `:GoImpl` is now `:GoFrob implements`. All code change commands are now behind
   one `:GoFrob` command. They're also mapped to `;[letter]` in normal mode, and
@@ -45,9 +46,18 @@ Some of the biggest changes/improvements from vim-go (not a comprehensive list):
   regexps; it's smarter about various things, such as replacing `text/template`
   with `html/template`.
 
-- Several improvements to the syntax highlighting; it's much faster, adds a few
-  minor highlights (e.g. struct tags, highlight erroneous `go:generate`, few
-  more), but also removes a few features that were very slow and complex.
+- Several improvements to the syntax highlighting; it adds a few minor
+  highlights (e.g. struct tags, highlight erroneous `go:generate`, highlight cgo
+  directives, few more), but also removes a few features that were very slow,
+  complex, and not even 100% correct in all cases.
+
+  The syntax highlighting is also much faster (even faster than the standard one
+  in Vim) and should break less often:
+
+      TOTAL      COUNT
+      0.113017   101215     gopher.vim
+      0.129921   114903     vim runtime
+      0.306453   141057     vim-go
 
 - Indentation is a bit smarter.
 
@@ -107,7 +117,7 @@ vim-go on left, gopher.vim on right.
     :GoTestCompile                :make -c or :make -c -o/dev/null
     :GoTestFunc                   :make -run ..
 
-    :GoBuildTags                  let g:gopher_build_tags = [..]
+    :GoBuildTags                  let g:gopher_build_tags = [..], or b:gopher_build_tags
 
 ### Linting
 
@@ -187,6 +197,7 @@ vim-go on left, gopher.vim on right.
 
     :GoIfErr                      :GoFrob if; also mapped to ;e (normal) and <C-k>e (insert)
     :GoImpl                       :GoFrob implement; also mapped to ;m (normal) and <C-k>m (insert)
+    :GoFillStruct                 :GoFrob fillstruct and ;f / <C-k>f mappings
 
 ### Other
 
@@ -203,8 +214,6 @@ vim-go on left, gopher.vim on right.
 
     :GoKeyify                     Doesn't work well with Go Modules, build tags; would be good to
                                   have, but tool is 'too broken' atm.
-    :GoFillStruct                 fillstruct (also: add fillswitch)
-
     :GoCoverageBrowser            Not sure if it's worth having? Could add ":GoCoverage browser" if there's demand.
     :GoPlay                       ⤶ can also be done by external "send to pastebin"-like plugin.
     :GoModFmt                     go mod edit -fmt doesn't read from stdin so can't use formatprg:

@@ -13,28 +13,34 @@ fun! gopher#init#version() abort
 
   " Ensure people have Go installed correctly.
   let l:v = system('go version')
-  if v:shell_error > 0 || !gopher#init#version_check(l:v)
+  if v:shell_error > 0
     let l:msg = "Go doesn't seem installed correctly? 'go version' failed with:\n" . l:v
-  " Ensure sure people have Go 1.11.
-  elseif l:v[:15] isnot# 'go version devel' && str2nr(l:v[15:], 10) < 11
-    let l:msg = "gopher.vim needs Go 1.11 or newer; reported version was:\n" . l:v
+  else
+      let l:msg = gopher#init#version_check(l:v)
   endif
 
   if l:msg isnot# ''
-    echohl Error
     for l:l in split(l:msg, "\n")
-      echom l:l
+      echoerr l:l
     endfor
-    echohl None
-
-    " Make sure people see any warnings.
-    sleep 2
   endif
 endfun
 
 " Check if the 'go version' output is a version we support.
 fun! gopher#init#version_check(v) abort
-  return a:v =~# '^go version \(devel\|go1\.\d\d\(\.\d\d\?\)\?\) .\+/.\+$'
+  for l:line in split(a:v, '\n')
+    if l:line !~# '^go version \(devel\|go1\.\d\d\(\.\d\d\?\)\?\)\(beta\d\)\? .\+/.\+$'
+      continue
+    endif
+
+    if l:line[:15] isnot# 'go version devel' && str2nr(l:line[15:], 10) < 11
+      return "gopher.vim needs Go 1.11 or newer; reported version was:\n" . l:line
+    endif
+
+    return ''
+  endfor
+
+  return "gopher.vim needs Go 1.11 or newer; reported version was:\n" . a:v
 endfun
 
 let s:root    = expand('<sfile>:p:h:h:h') " Root dir of this plugin.
@@ -51,11 +57,7 @@ fun! gopher#init#config() abort
   let $PATH = s:root . '/tools/bin' . gopher#system#pathsep() . $PATH
 
   " Set defaults.
-  let g:gopher_build_tags     = get(g:, 'gopher_build_tags', [])
-  let g:gopher_build_flags    = get(g:, 'gopher_build_flags', [])
-        \ + (len(g:gopher_build_tags) > 0 ? ['-tags', join(g:gopher_build_tags, ' ')] : [])
   let g:gopher_highlight      = get(g:, 'gopher_highlight', ['string-spell', 'string-fmt'])
-  let g:gopher_debug          = get(g:, 'gopher_debug', [])
   let g:gopher_tag_transform  = get(g:, 'gopher_tag_transform', 'snakecase')
   let g:gopher_tag_default    = get(g:, 'gopher_tag_default', 'json')
   let g:gopher_tag_complete   = get(g:, 'gopher_tag_complete', ['db', 'json', 'json,omitempty', 'yaml'])
@@ -78,10 +80,15 @@ fun! s:map() abort
         \ '_imap_ctrl':   1,
     \ }
   let l:maps = {
-        \ 'error':     'e',
-        \ 'if':        'i',
-        \ 'implement': 'm',
-        \ 'return':    'r',
+        \ 'install':      ';',
+        \ 'test-current': 't',
+        \ 'test':         'T',
+        \ 'lint':         'l',
+        \ 'error':        'e',
+        \ 'if':           'i',
+        \ 'implement':    'm',
+        \ 'return':       'r',
+        \ 'fillstruct':   'f',
     \ }
 
   if !exists('g:gopher_map')

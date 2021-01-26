@@ -56,17 +56,24 @@ onoremap <buffer> <silent> [[ :<C-u>call gopher#motion#jump('o', 'prev')<CR>
 xnoremap <buffer> <silent> [[ :<C-u>call gopher#motion#jump('v', 'prev')<CR>
 
 " Mappings
-nnoremap <buffer> <Plug>(gopher-popup)  :call gopher#frob#popup()<CR>
-nnoremap <buffer> <Plug>(gopher-error)  :call gopher#frob#ret(1)<CR>
-nnoremap <buffer> <Plug>(gopher-if)     :call gopher#frob#if()<CR>
-nnoremap <buffer> <Plug>(gopher-impl)   :call gopher#frob#impl()<CR>
-nnoremap <buffer> <Plug>(gopher-return) :call gopher#frob#ret(0)<CR>
+nnoremap <buffer> <Plug>(gopher-error)      :call gopher#frob#ret(1)<CR>
+nnoremap <buffer> <Plug>(gopher-if)         :call gopher#frob#if()<CR>
+nnoremap <buffer> <Plug>(gopher-impl)       :call gopher#frob#impl()<CR>
+nnoremap <buffer> <Plug>(gopher-popup)      :call gopher#frob#popup()<CR>
+nnoremap <buffer> <Plug>(gopher-return)     :call gopher#frob#ret(0)<CR>
+nnoremap <buffer> <Plug>(gopher-fillstruct) :call gopher#frob#fillstruct(0)<CR>
 
-inoremap <buffer> <Plug>(gopher-popup)  <C-o>:call gopher#frob#popup()<CR>
-inoremap <buffer> <Plug>(gopher-error)  <C-o>:call gopher#frob#ret(1)<CR>
-inoremap <buffer> <Plug>(gopher-if)     <C-o>:call gopher#frob#if()<CR>
-inoremap <buffer> <Plug>(gopher-impl)   <C-o>:call gopher#frob#impl()<CR>
-inoremap <buffer> <Plug>(gopher-return) <C-o>:call gopher#frob#ret(0)<CR>
+nnoremap <buffer> <silent> <Plug>(gopher-install)      :call gopher#go#run_install()<CR>
+nnoremap <buffer> <silent> <Plug>(gopher-test)         :call gopher#go#run_test()<CR>
+nnoremap <buffer> <silent> <Plug>(gopher-test-current) :call gopher#go#run_test_current()<CR>
+nnoremap <buffer> <silent> <Plug>(gopher-lint)         :call gopher#go#run_lint()<CR>
+
+inoremap <buffer> <Plug>(gopher-error)      <C-o>:call gopher#frob#ret(1)<CR>
+inoremap <buffer> <Plug>(gopher-if)         <C-o>:call gopher#frob#if()<CR>
+inoremap <buffer> <Plug>(gopher-impl)       <C-o>:call gopher#frob#impl()<CR>
+inoremap <buffer> <Plug>(gopher-popup)      <C-o>:call gopher#frob#popup()<CR>
+inoremap <buffer> <Plug>(gopher-return)     <C-o>:call gopher#frob#ret(0)<CR>
+inoremap <buffer> <Plug>(gopher-fillstruct) <C-o>:call gopher#frob#fillstruct(0)<CR>
 
 fun! s:map(key, map) abort
   let l:key = get(g:gopher_map, a:key, '')
@@ -93,10 +100,15 @@ if g:gopher_map isnot 0
     exe printf('nmap %s <Plug>(gopher-popup)', g:gopher_map['_nmap_prefix'])
     exe printf('imap %s <Plug>(gopher-popup)', g:gopher_map['_imap_prefix'])
   else
-    call s:map('error',  '<Plug>(gopher-error)')
-    call s:map('if',     '<Plug>(gopher-if)')
-    call s:map('impl',   '<Plug>(gopher-impl)')
-    call s:map('return', '<Plug>(gopher-return)')
+    call s:map('install',      '<Plug>(gopher-install)')
+    call s:map('test',         '<Plug>(gopher-test)')
+    call s:map('test-current', '<Plug>(gopher-test-current)')
+    call s:map('lint',         '<Plug>(gopher-lint)')
+    call s:map('error',        '<Plug>(gopher-error)')
+    call s:map('if',           '<Plug>(gopher-if)')
+    call s:map('impl',         '<Plug>(gopher-impl)')
+    call s:map('return',       '<Plug>(gopher-return)')
+    call s:map('fillstruct',   '<Plug>(gopher-fillstruct)')
   endif
 endif
 
@@ -109,3 +121,11 @@ command! -nargs=*        -complete=customlist,gopher#import#complete   GoImport 
 command! -nargs=* -range -complete=customlist,gopher#tags#complete     GoTags     call gopher#tags#modify(<line1>, <line2>, <count>, <f-args>)
 command! -nargs=+        -complete=customlist,gopher#guru#complete     GoGuru     call gopher#guru#do(<f-args>)
 command! -nargs=?        -complete=customlist,gopher#rename#complete   GoRename   call gopher#rename#do(<f-args>)
+
+" Autocmd
+augroup gopher.vim
+  au!
+
+  au BufEnter *.go call gopher#go#set_build_package()
+  au BufEnter *.go call gopher#go#set_build_tags()
+augroup end
